@@ -1,7 +1,3 @@
-# zrsmyley-m001-b2025
-This something you dont know.
-
-
 GET 1000 historical candle data
 IDENTIFY PULLBACK()
 IDENTIFY SMCstructure ()
@@ -29,18 +25,22 @@ IDENTIFY SMCstructure ()
 
 
 
-PULLBACK (candle rates):
+PULLBACK (candle rates): # WILL return data of every pullbacks including internal.
+    
+    # INITIATION of arrays and variables
     STRUCTURED array of index point, next direction
     INITIALIZE pointer of current high and low index
     INITIALIZE STATIC trend direction (bullish/neutral/bearish)
     INITIALIZE STATIC trend shift signal (continuation/ to be continued)
     
+    # IDENTIFY the trend
     IF trend direction is neutral:
         IF current candle high higher than previous candle high:
             SET trend direction to bullish
         ELSE:
             SET it to bearish
     
+    # CHECK every single candle from last to current
     FOR every index of candle rates starts at 999:
         
         # IGNORE if the candle is correction or protected
@@ -54,43 +54,43 @@ PULLBACK (candle rates):
             ELSE:
                 APPEND current index to the structured array and next direction
         
-        # bullish continuation
+        # CONTINUATION of bullish
         IF current candle high, higher than previous and candle prev higher than prev-prev:
             SET new high similar to current candle
             SET trend to bullish
             SET trend shift to continuation
         
-        # bearish continuation
+        # CONTINUATION of bearish
         IF current candle low lower than previous and candle prev lower than prev-prev:
             SET new low similar to current candle
             SET trend to bearish
             SET trend shift to continuation
         
-        # bullish trend shift
+        # TREND shift of bullish
         IF current candle low, lower than previous and candle prev low, higher than prev-prev:
             SET new low similar to current candle
             SET trend to bearish
             SET trend shift to, to be continued
        
-       # bearish trend shift
-       IF current candle high, higher than previous and candle prev high, lower than prev-prev:
+        # TREND shift of bearish
+        IF current candle high, higher than previous and candle prev high, lower than prev-prev:
             SET new high similar to current candle
             SET trend to bullish 
             SET trend shift to, to be continued
        
-       # add index point to structured array
-       IF trend shift is to be continued:
+        # ADD index point to structured array
+        IF trend shift is to be continued:
             IF trend direction to bullish:
                 APPEND previous high and next direction to structured array
             ELSE: 
                 APPEND previous low and next direction to structured array
        
-       RETURN structured arrays
+    RETURN structured arrays
 
 
 
 
-SMCstructure (schematic data):
+SMCstructure (schematic data): # WILL structure data according to SMC structure.
     
     # INITIALIZATION of arrays and variables
     INITIALIZE STRUCTURED structure record (low index, high index, inducement index, direction)
@@ -98,9 +98,11 @@ SMCstructure (schematic data):
     INITIALIZE pointer of high, low, Inducement
     INITIALIZE pointer of previous high, low, inducement
     INITIALIZE STATIC structure record counter
-    
-    # IDENTIFY the trend
+   
+    # CHECK every single data in the schematic data
     FOR every point in the schematic data:
+        
+        # IDENTIFY the trend
         IF trend direction is neutral:
             IF current point is greater than previous:
                 SET trend direction to bullish
@@ -112,55 +114,63 @@ SMCstructure (schematic data):
             
             # FIRST pointer populate
             IF schematic data first index next direction is bullish and current point is equal to schematic data first index:
-                SET it as low pointer
+                SET it as previous low and low pointer
                 CONTINUE
             ELSE:
-                SET it as high pointer
+                SET it as previous high and high pointer
                 CONTINUE
         
             # SECOND pointer populate
-            IF high is empty:
-                SET current pointer as high and previous high 
+            IF previous high and high is empty:
+                SET current point as previous high and high
                 CONTINUE
             ELSE:
-                SET it as low and previous low
+                SET it as previous low and low
                 CONTINUE
             
             # THIRD pointer populate
-            IF Inducement is empty:
-                SET current pointer as inducement
-                CONTINUE
+            IF inducement is empty:
+                SET current point as inducement
+            
+        # CHECK if inducement dont instantly took bos or choch at first boot
+        IF high and previous high is the same or low and previous low is the same and current point is lower than inducement and previous low or previous high:
+            SET high and low to empty
+            SET previous high and low to empty
+            SET inducement to empty
+            
+            CONTINUE
         
         # TRAVERS uptrend structure
         IF trend direction is bullish:
             
             #CHECK the current structure record, if its not empty means it already took inducement.
-            IF structure record index counter not empty:
+            IF structure record not empty:
                 
-                # IDENTIFY if its break of structure
-                IF current pointer is higher than current structure record index high: 
-                    ADD space to structure record
-                    INCREMENT structure record counter
-                    CONTINUE
-               
                 # IDENTIFY if its change of character, and change the direction
-                ELSE IF current pointer is lower than current structure record index low:
-                    ADD space to structure record
-                    INCREMENT structure record counter
+                IF trend direction is bullish and current pointer is lower than current structure record index low:
                     SET trend direction to bearish
-                    CONTINUE
+                    # NOTE: if the trend don't change then its a break of structure
+                    
+                ADD space to structure record
+                INCREMENT structure record counter
+                CONTINUE
             
             # IGNORE invalid point but set it as potential inducement marked as low, well be adjusted later.
             IF current point is lower than high pointer and higher than inducement:
                 
+                # SET low if its the first boot of the program
+                IF low is lower than inducement and low is not the same as previous low:
+                    SET current point as low
+                    CONTINUE
+                    
                 # SET the low to lower preventing internal structures
-                IF current pointer not higher than low:
-                    SET current pointer as low
+                IF current point not higher than low:
+                    SET current point as low
                     
                 CONTINUE
                 
             # IF schematic point formed higher high and adjust the inducement we talk about, if there is. 
-            IF current point is higher than high pointer:
+            IF current point is higher than high:
                 SET high as previous high
                 SET current point as high
                 
@@ -169,27 +179,58 @@ SMCstructure (schematic data):
                  
                 CONTINUE
             
-#            # [PS: I HAVE NO IDEA WHY I MADE THIS] CHECK if there's a new low for Inducement refinance
-#            IF current point is not lower than low and inducement but higher than previous low:
-#                SET inducement as the current point
-#                CONTINUE
-            
             # APPEND SMCstructure low as CHOCH, high as BOS
-            IF current point is lower than inducement and low and higher than previous low:
-                APPEND inducement to SMCstructure as inducement
-                APPEND high to SMCstructure as high
-                APPEND lower low to SMCstructure as low
-                
-                
-                    
-                    
-            IF 
-        
-        # TRAVERS downtrend structure
-        IF current point lower than high pointer:
-            SET current pointer as low
-        
-        # MARK possible inducement
-        
-        
+            IF current point is lower than inducement and higher than previous low:
+                APPEND inducement to structure record
+                APPEND high to structure record
+                APPEND lower low to structure record
+                APPEND direction to structure record
+       
+       
+       # TRAVERS downtrend structure
+        IF trend direction is bearish:
             
+            #CHECK the current structure record, if its not empty means it already took inducement.
+            IF structure record not empty:
+                
+                # IDENTIFY if its change of character, and change the direction
+                IF trend direction is bearish and current pointer is lower than current structure record index high:
+                    SET trend direction to bullish
+                    # NOTE: if the trend don't change then its a break of structure
+                    
+                ADD space to structure record
+                INCREMENT structure record counter
+                CONTINUE
+            
+            # IGNORE invalid point but set it as potential inducement marked as high, well be adjusted later.
+            IF current point is higher than low pointer and lower than inducement:
+                
+                # SET low if its the first boot of the program
+                IF high is higher than inducement and high is not the same as previous high:
+                    SET current point as high
+                    CONTINUE
+                    
+                # SET the low to lower preventing internal structures
+                IF current point not lower than high:
+                    SET current point as high
+                    
+                CONTINUE
+                
+            # IF schematic point formed lower low and adjust the inducement we talk about, if there is. 
+            IF current point is lower than low:
+                SET low as previous low
+                SET current point as low
+                
+                IF high is lower than inducement:
+                    SET high as inducement
+                 
+                CONTINUE
+            
+            # APPEND SMCstructure high as CHOCH, low as BOS
+            IF current point is higher than inducement and lower than previous high:
+                APPEND inducement to structure record
+                APPEND low to structure record
+                APPEND higher high to structure record
+                APPEND direction to structure record
+    
+    RETURN structure record
