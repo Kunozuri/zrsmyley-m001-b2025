@@ -1,7 +1,7 @@
 GET 1000 historical candle data
-IDENTIFY PULLBACK()
-IDENTIFY SMCstructure ()
-
+IDENTIFY PULLBACK
+IDENTIFY SMCstructure
+IDENTIFY ORDERBLOCKS
 
 
 
@@ -40,19 +40,19 @@ PULLBACK (candle rates): # WILL return data of every pullbacks including interna
         ELSE:
             SET it to bearish
     
+    # POPULATE array if its first run
+    IF structured array is empty:
+        IF trend direction is bullish:
+            APPEND current index to the structured array and next direction
+        ELSE:
+            APPEND current index to the structured array and next direction
+    
     # CHECK every single candle from last to current
     FOR every index of candle rates starts at 999:
         
         # IGNORE if the candle is correction or protected
         CHECK IF current candle high and low is higher than previous candle || current candle high and low lower than previous candle:
             CONTINUE
-        
-        # POPULATE array if its first run
-        IF structured array is empty:
-            IF trend direction is bullish:
-                APPEND current index to the structured array and next direction
-            ELSE:
-                APPEND current index to the structured array and next direction
         
         # CONTINUATION of bullish
         IF current candle high, higher than previous and candle prev higher than prev-prev:
@@ -86,7 +86,6 @@ PULLBACK (candle rates): # WILL return data of every pullbacks including interna
                 APPEND previous low and next direction to structured array
        
     RETURN structured arrays
-
 
 
 
@@ -226,7 +225,7 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
                  
                 CONTINUE
             
-            # APPEND SMCstructure high as CHOCH, low as BOS
+            # APPEND SMCstructure low as CHOCH, high as BOS
             IF current point is higher than inducement and lower than previous high:
                 APPEND inducement to structure record
                 APPEND low to structure record
@@ -234,3 +233,27 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
                 APPEND direction to structure record
     
     RETURN structure record
+
+
+
+ORDERBLOCKS (structure record): # RETURN the valid orderblock within the current set of structure (bos, choch, inducement)
+    INITIALIZE orderblock storage array
+    INITIALIZE available pullback array
+    # LOOP each within the structure record
+    FOR length of the structure record:
+        
+        # THIS will hold the pullbacks of every structure from bos to choch
+        INITIALIZE temporary schematic data structure array
+        
+        # IDENTIFY the direction of the current set
+        IF current structure record direction is bullish:
+            STORE PULLBACK(current structure data low until inducement) TO temporary schematic data 
+
+            # LOOP data to organize proper pullback
+            FOR length of the temporary schematic data:
+                
+                
+            
+            
+        # IDENTIFY the direction of the current set
+        IF current structure record direction is bullish: 
