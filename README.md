@@ -1,5 +1,5 @@
 GET 1000 historical candle data
-IDENTIFY PULLBACK
+IDENTIFY SCHEMATIC
 IDENTIFY SMCstructure
 IDENTIFY ORDERBLOCKS
 
@@ -25,7 +25,7 @@ IDENTIFY ORDERBLOCKS
 
 
 
-PULLBACK (candle rates): # WILL return data of every pullbacks including internal.
+SCHEMATIC (candle rates): # WILL return data of every schematic including internal.
     
     # INITIATION of arrays and variables
     STRUCTURED array of index point, next direction
@@ -92,7 +92,7 @@ PULLBACK (candle rates): # WILL return data of every pullbacks including interna
 SMCstructure (schematic data): # WILL structure data according to SMC structure.
     
     # INITIALIZATION of arrays and variables
-    INITIALIZE STRUCTURED structure record (low index, high index, inducement index, direction)
+    INITIALIZE STRUCTURED structure record (low index, high index, inducement index, pullback record, direction)
     INITIALIZE STATIC trend direction (bullish, nuetral, bearish)
     INITIALIZE pointer of high, low, Inducement
     INITIALIZE pointer of previous high, low, inducement
@@ -146,12 +146,29 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
             IF structure record not empty:
                 
                 # IDENTIFY if its change of character, and change the direction
-                IF trend direction is bullish and current pointer is lower than current structure record index low:
+                IF current point close is lower than current structure record index low:
                     SET trend direction to bearish
-                    # NOTE: if the trend don't change then its a break of structure
-                    
-                ADD space to structure record
-                INCREMENT structure record counter
+                    ADD space to structure record
+                    INCREMENT structure record counter
+                    CONTINUE
+                
+                # REFINE the choch point if invalid closure
+                ELSE IF current point close is higher than current structure record index low and current point low is lower than current structure record index low:
+                    SET current structure record low as current point
+                    CONTINUE
+                
+                # REFINE the bos point if invalid closure
+                IF current point close lower than high and current point high is higher than high:
+                    SET current structure record high as current point
+                    CONTINUE
+                
+                # IF the trend don't change then its a break of structure
+                IF current point close higer than high:
+                    ADD space to structure record
+                    INCREMENT structure record counter
+                    CONTINUE
+                
+                # IGNORE every point if none of the condition above is met
                 CONTINUE
             
             # IGNORE invalid point but set it as potential inducement marked as low, well be adjusted later.
@@ -174,8 +191,9 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
                 SET current point as high
                 
                 IF low is higher than inducement:
-                    SET low as inducement
-                 
+                    APPEND inducement to pullback record
+                    SET low as inducement 
+                
                 CONTINUE
             
             # APPEND SMCstructure low as CHOCH, high as BOS
@@ -192,13 +210,32 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
             #CHECK the current structure record, if its not empty means it already took inducement.
             IF structure record not empty:
                 
+                IF structure record not empty:
+                
                 # IDENTIFY if its change of character, and change the direction
-                IF trend direction is bearish and current pointer is lower than current structure record index high:
+                IF current point close is higher than current structure record index high:
                     SET trend direction to bullish
-                    # NOTE: if the trend don't change then its a break of structure
-                    
-                ADD space to structure record
-                INCREMENT structure record counter
+                    ADD space to structure record
+                    INCREMENT structure record counter
+                    CONTINUE
+                
+                # REFINE the choch point if invalid closure
+                ELSE IF current point close is lower than current structure record index high and current point high is higher than current structure record index high:
+                    SET current structure record high as current point
+                    CONTINUE
+                
+                # REFINE the bos point if invalid closure
+                IF current point close higher than high and current point low is lower than low:
+                    SET current structure record low as current point
+                    CONTINUE
+                
+                # IF the trend don't change then its a break of structure
+                IF current point close lower than low:
+                    ADD space to structure record
+                    INCREMENT structure record counter
+                    CONTINUE
+                
+                # IGNORE every point if none of the condition above is met
                 CONTINUE
             
             # IGNORE invalid point but set it as potential inducement marked as high, well be adjusted later.
@@ -221,6 +258,7 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
                 SET current point as low
                 
                 IF high is lower than inducement:
+                    APPEND inducement to pullback record
                     SET high as inducement
                  
                 CONTINUE
@@ -239,8 +277,9 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
 ORDERBLOCKS (structure record): # RETURN the valid orderblock within the current set of structure (bos, choch, inducement)
     INITIALIZE orderblock storage array
     INITIALIZE available pullback array
+    
     # LOOP each within the structure record
-    FOR length of the structure record:
+    FOR the length of the structure record:
         
         # THIS will hold the pullbacks of every structure from bos to choch
         INITIALIZE temporary schematic data structure array
@@ -250,7 +289,12 @@ ORDERBLOCKS (structure record): # RETURN the valid orderblock within the current
             STORE PULLBACK(current structure data low until inducement) TO temporary schematic data 
 
             # LOOP data to organize proper pullback
-            FOR length of the temporary schematic data:
+            FOR the length of the temporary schematic data:
+                
+                #APPEND the first 3 da
+                IF length is less than 3:
+                    APPEND current point
+                
                 
                 
             
