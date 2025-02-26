@@ -275,29 +275,53 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
 
 
 ORDERBLOCKS (structure record): # RETURN the valid orderblock within the current set of structure (bos, choch, inducement)
-    INITIALIZE orderblock storage array
-    INITIALIZE available pullback array
+    INITIALIZE struct orderblock storage array (extreme, decisional, liquidities)
     
     # LOOP each within the structure record
     FOR the length of the structure record:
-        
-        # THIS will hold the pullbacks of every structure from bos to choch
-        INITIALIZE temporary schematic data structure array
-        
+        INITIALIZE current point holder # holder of the current candle, such as the extreme point
+    
         # IDENTIFY the direction of the current set
         IF current structure record direction is bullish:
-            STORE PULLBACK(current structure data low until inducement) TO temporary schematic data 
-
-            # LOOP data to organize proper pullback
-            FOR the length of the temporary schematic data:
+            
+            # LOOP while untill I break it
+            WHILE TRUE:
                 
-                #APPEND the first 3 da
-                IF length is less than 3:
-                    APPEND current point
+                INITIALIZE current point holder # HOLDER of the extreme and decisional point
+                INITIALIZE next of current point holder
+                INITIALIZE next next of current point holder
                 
+                #CHECK if the current point has a hieght of 60 pips also known as point of interest
+                IF current point holder ((high - low) / _Digit) is greater than 60pips:
+                    
+                    # EXIT if it has already extreme orderblock
+                    IF orderblock storage array extreme is not empty and current point holder is below structure record pullback:
+                        SET current point holder to structure record pullback index 1
+                        CONTINUE
+                    
+                    # CHECK if the current point close is above 75% of the whole candle
+                    IF current point holder close is above ((high - low) * 0.75):
+                        
+                        # CHECK if the next low is not less than 55% of the whole candle
+                        IF next point holder low is above current point holder ((high - low) * 0.6):
+                            APPEND current point holder to orderblock storage array extreme
+                        
+                        # CHECK if it has eniffeciency in the middle
+                        ELSE IF next current holder close is above current point holder (((high - low) // 2) * 3) and next next current point holder low is 20% higher than next current point holder open:
+                            APPEND current point holder to orderblock storage array extreme
+                        
+                        IF orderblock storage array is empty:
+                            SET current point holder to next current point
+                            CONTINUE
+                        
+                        SET current point holder to structure record pullback index 1
+                        CONTINUE
                 
-                
+                #
+                ELSE IF
+                            
             
             
-        # IDENTIFY the direction of the current set
-        IF current structure record direction is bullish: 
+            
+            
+            
