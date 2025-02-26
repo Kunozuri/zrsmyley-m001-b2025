@@ -276,52 +276,127 @@ SMCstructure (schematic data): # WILL structure data according to SMC structure.
 
 ORDERBLOCKS (structure record): # RETURN the valid orderblock within the current set of structure (bos, choch, inducement)
     INITIALIZE struct orderblock storage array (extreme, decisional, liquidities)
+    INITIALIZE static decisional counter
     
     # LOOP each within the structure record
     FOR the length of the structure record:
-        INITIALIZE current point holder # holder of the current candle, such as the extreme point
-    
+        
+        INITIALIZE length of the structure record pullback  # GET the size of the structure record pullback
+        
         # IDENTIFY the direction of the current set
         IF current structure record direction is bullish:
             
+            INITIALIZE current point holder # HOLDER of the extreme and decisional point
+            INITIALIZE next of current point holder
+            INITIALIZE next next of current point holder
+  
             # LOOP while untill I break it
             WHILE TRUE:
                 
-                INITIALIZE current point holder # HOLDER of the extreme and decisional point
-                INITIALIZE next of current point holder
-                INITIALIZE next next of current point holder
+                # BREAK if it reach inducement
+                IF current point holder is equal to structure record inducement:
+                    SET decisional counter to 0
+                    BREAK
                 
-                #CHECK if the current point has a hieght of 60 pips also known as point of interest
-                IF current point holder ((high - low) / _Digit) is greater than 60pips:
-                    
-                    # EXIT if it has already extreme orderblock
-                    IF orderblock storage array extreme is not empty and current point holder is below structure record pullback:
+                # CHECK if the current point close is above 75% of the whole candle and is a long wyck also known as POI
+                IF current point holder ((high - low) / _Digit) is greater than 60pips and current point holder close is above ((high - low) * 0.75):
+                            
+                    # CHECK if the next low is not less than 60% of the whole candle
+                    IF next current point holder low is above the current point holder ((high - low) * 0.6) aswell as next next current point holder:
+                                       
+                        # ORGANIZE where to append
+                        IF orderblock storage array extreme is empty and current point holder is lower than structure record pullback index 1:
+                            APPEND current point holder to orderblock storage array extreme
+                                
+                        ELSE IF orderblock storage array decisional is empty and current point holder is equal or above to pullback index 1:
+                            APPEND current point holder to orderblock storage array decisional
+                            
+                    # CHECK if it has eniffeciency
+                    ELSE IF next current holder close and next next current point holder low is above current point holder high + (((high - low) // 2) * 3):
+                            
+                        # ORGANIZE where to append
+                        IF orderblock storage array extreme is empty and current point holder is lower than structure record pullback index 1:
+                            APPEND current point holder to orderblock storage array extreme
+                                
+                        ELSE IF orderblock storage array decisional is empty and current point holder is equal or above to pullback index 1:
+                            APPEND current point holder to orderblock storage array decisional
+                                
+                    # IF above condition filled about extreme orderblock
+                    IF orderblock storage array extreme is not empty and current point holder is less than storage structure pullback index 1:
                         SET current point holder to structure record pullback index 1
                         CONTINUE
-                    
-                    # CHECK if the current point close is above 75% of the whole candle
-                    IF current point holder close is above ((high - low) * 0.75):
                         
-                        # CHECK if the next low is not less than 55% of the whole candle
-                        IF next point holder low is above current point holder ((high - low) * 0.6):
-                            APPEND current point holder to orderblock storage array extreme
-                        
-                        # CHECK if it has eniffeciency in the middle
-                        ELSE IF next current holder close is above current point holder (((high - low) // 2) * 3) and next next current point holder low is 20% higher than next current point holder open:
-                            APPEND current point holder to orderblock storage array extreme
-                        
-                        IF orderblock storage array is empty:
-                            SET current point holder to next current point
+                    # IF above condition filled about decisional orderblock
+                    IF orderblock storage array decisional is not empty and current point holder is equal or higher than storage structure pullback index 1:
+                            
+                        # LOOP until the end of the size
+                        IF decisional counter is less than length of structure record pullback + 1:
+                            SET current point holder to structure record pullback index counter
+                            INCREMENT decisional counter 
                             CONTINUE
-                        
-                        SET current point holder to structure record pullback index 1
-                        CONTINUE
-                
-                #
-                ELSE IF
+                            
+                    #ADVANCE pointers by one
+                    SET current point holder to next current point
+                    SET next current point holder to next next current point
+                    SET next next current point holder to next next next current point
+                    CONTINUE
                             
             
+        # IDENTIFY the direction of the current set
+        IF current structure record direction is bearish:
             
-            
-            
-            
+            INITIALIZE current point holder # HOLDER of the extreme and decisional point
+            INITIALIZE next of current point holder
+            INITIALIZE next next of current point holder
+  
+            # LOOP while untill I break it
+            WHILE TRUE:
+                
+                # BREAK if it reach inducement
+                IF current point holder is equal to structure record inducement:
+                    SET decisional counter to 0
+                    BREAK
+                
+                # CHECK if the current point close is below 25% of the whole candle and is a long wyck also known as POI
+                IF current point holder ((high - low) / _Digit) is greater than 60pips and current point holder close is below ((high - low) * 0.25):
+                            
+                    # CHECK if the next high is not greater than 40% of the whole candle
+                    IF next current point holder high is below the current point holder ((high - low) * 0.4) aswell as next next current point holder:
+                                       
+                        # ORGANIZE where to append
+                        IF orderblock storage array extreme is empty and current point holder is higher than structure record pullback index 1:
+                            APPEND current point holder to orderblock storage array extreme
+                                
+                        ELSE IF orderblock storage array decisional is empty and current point holder is equal or below to pullback index 1:
+                            APPEND current point holder to orderblock storage array decisional
+                            
+                    # CHECK if it has eniffeciency
+                    ELSE IF next current holder close and next next current point holder high is below current point holder low - (((high - low) // 2) * 3):
+                            
+                        # ORGANIZE where to append
+                        IF orderblock storage array extreme is empty and current point holder is higher than structure record pullback index 1:
+                            APPEND current point holder to orderblock storage array extreme
+                                
+                        ELSE IF orderblock storage array decisional is empty and current point holder is equal or below to pullback index 1:
+                            APPEND current point holder to orderblock storage array decisional
+                                
+                    # IF above condition filled about extreme orderblock
+                    IF orderblock storage array extreme is not empty and current point holder is greater than storage structure pullback index 1:
+                        SET current point holder to structure record pullback index 1
+                        CONTINUE
+                        
+                    # IF above condition filled about decisional orderblock
+                    IF orderblock storage array decisional is not empty and current point holder is equal or lower than storage structure pullback index 1:
+                            
+                        # LOOP until the end of the size
+                        IF decisional counter is less than length of structure record pullback + 1:
+                            SET current point holder to structure record pullback index counter
+                            INCREMENT decisional counter 
+                            CONTINUE
+                            
+                    #ADVANCE pointers by one
+                    SET current point holder to next current point
+                    SET next current point holder to next next current point
+                    SET next next current point holder to next next next current point
+                    CONTINUE
+                    
